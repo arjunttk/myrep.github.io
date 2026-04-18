@@ -1,0 +1,2042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Southern States MLA Dashboard</title>
+  <link rel="stylesheet" href="maps-master/docs/bower_components/leaflet/dist/leaflet.css">
+  <script src="maps-master/docs/bower_components/leaflet/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --ink: #1f1833;
+      --muted: #746b89;
+      --paper: #fbfaff;
+      --panel: #ffffff;
+      --line: #e6def8;
+      --purple: #7c3aed;
+      --purple-deep: #4c1d95;
+      --purple-soft: #f3edff;
+      --green: #7c3aed;
+      --green-soft: #f3edff;
+      --red: #ff0d00;
+      --red-soft: #fae9e7;
+      --yellow: #f0e90d;
+      --yellow-soft: #fbf2d6;
+      --teal: #10a6cf;
+      --teal-soft: #e5f3f6;
+      --violet: #6b5fa7;
+      --violet-soft: #eeeeff;
+      --shadow: 0 14px 28px rgba(76, 29, 149, 0.13), 0 4px 0 rgba(124, 58, 237, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .site-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      min-height: 64px;
+      padding: 27px 27px;
+      color: var(--purple-deep);
+      background: #fff;
+      border-bottom: 3px solid rgba(124, 58, 237, 0.22);
+      box-shadow: 0 8px 26px rgba(76, 29, 149, 0.14);
+    }
+
+    .site-title {
+      font-size: clamp(1.35rem, 3vw, 2.1rem);
+      font-weight: 950;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+   
+
+    .app {
+      display: grid;
+      grid-template-columns: 370px minmax(0, 1fr) 430px;
+      min-height: calc(100vh - 64px);
+    }
+
+    .sidebar,
+    .detail {
+      background: var(--panel);
+      border-color: var(--line);
+      overflow: auto;
+      min-height: calc(100vh - 64px);
+      min-width: 0;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      padding: 26px;
+      box-shadow: 8px 0 28px rgba(76, 29, 149, 0.08);
+    }
+
+    .brand {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--purple);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 14ch;
+      font-size: clamp(2rem, 7vw, 3.6rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 32ch;
+    }
+
+    .state-grid {
+      display: grid;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .state-btn {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 58px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 4px 0 rgba(124, 58, 237, 0.08);
+      text-align: left;
+      transition: transform 160ms ease, border 160ms ease, background 160ms ease;
+    }
+
+    .state-btn:hover,
+    .state-btn.active {
+      transform: translateY(-1px);
+      border-color: var(--purple);
+      background: var(--purple-soft);
+    }
+
+    .state-code {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 38px;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .state-name {
+      font-weight: 800;
+    }
+
+    .state-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 3px;
+    }
+
+    .state-count {
+      color: var(--purple);
+      font-weight: 900;
+    }
+
+    .search {
+      margin: 22px 0 16px;
+    }
+
+    .search-help {
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+      margin-top: 7px;
+    }
+
+    .party-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 0 0 18px;
+    }
+
+    .party-filter {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .party-filter.active {
+      color: #fff;
+      border-color: transparent;
+      background: var(--purple);
+    }
+
+    .search input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #fff;
+      padding: 13px 14px;
+      outline: none;
+    }
+
+    .search input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
+    }
+
+    .constituency-list {
+      display: grid;
+      gap: 8px;
+      max-height: 38vh;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .party-heading {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      color: var(--muted);
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      padding: 8px 2px 4px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .list-empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #fff;
+      padding: 14px;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .constituency-btn {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 12px 13px;
+      text-align: left;
+      box-shadow: 0 3px 0 rgba(124, 58, 237, 0.08);
+    }
+
+    .constituency-btn:hover,
+    .constituency-btn.active {
+      border-color: var(--teal);
+      background: var(--purple-soft);
+    }
+
+    .constituency-btn span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 3px;
+    }
+
+    .source-note {
+      margin-top: 20px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.55;
+    }
+
+    .insights {
+      display: grid;
+      gap: 12px;
+      margin: 22px 0 20px;
+    }
+
+    .insights h2 {
+      font-size: 0.85rem;
+      letter-spacing: 0;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .insight-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      min-width: 0;
+      box-shadow: 0 4px 0 rgba(124, 58, 237, 0.1);
+    }
+
+    .insight-card.clickable {
+      cursor: pointer;
+      text-align: left;
+      position: relative;
+      border-left: 5px solid var(--green);
+      transition: border 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .insight-card.clickable:hover {
+      transform: translateY(-1px);
+      border-color: var(--purple);
+      background: var(--purple-soft);
+    }
+
+    .insight-card.rank-rich {
+      border-left-color: #facc15;
+    }
+
+    .insight-card.rank-low {
+      border-left-color: #06b6d4;
+    }
+
+    .insight-card.rank-liability {
+      border-left-color: #f97316;
+    }
+
+    .insight-card.rank-crime {
+      border-left-color: #ef4444;
+    }
+
+    .insight-card strong,
+    .insight-card span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .insight-card strong {
+      margin-top: 5px;
+      font-size: 0.92rem;
+    }
+
+    .insight-card span {
+      color: var(--muted);
+      font-size: 0.74rem;
+      line-height: 1.35;
+    }
+
+    .insight-wide {
+      grid-column: 1 / -1;
+    }
+
+    .map-shell {
+      position: relative;
+      min-height: calc(100vh - 64px);
+      background: #eef2f0;
+    }
+
+    #map {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .map-topbar {
+      position: absolute;
+      z-index: 500;
+      top: 18px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      pointer-events: none;
+    }
+
+    .map-title,
+    .legend {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      pointer-events: auto;
+    }
+
+    .map-title {
+      padding: 15px 17px;
+    }
+
+    .map-title h2 {
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .map-title p {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 3px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      max-width: min(560px, 52vw);
+      max-height: 118px;
+      overflow: auto;
+    }
+
+    .legend span {
+      white-space: nowrap;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+      vertical-align: -1px;
+    }
+
+    .legend-item,
+    .legend-role {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      white-space: nowrap;
+    }
+
+    .legend-role {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 4px 8px 4px 5px;
+      color: var(--ink);
+      background: #fff;
+      font-weight: 900;
+      box-shadow: 0 3px 0 rgba(124, 58, 237, 0.1);
+    }
+
+    .legend-symbol {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 20px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 900;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .role-marker {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      color: #fff;
+      border: 3px solid #fff;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+
+    .role-marker.lop {
+      border-color: #001219;
+      color: #001219;
+    }
+
+    .detail {
+      border-left: 1px solid var(--line);
+      box-shadow: -8px 0 28px rgba(76, 29, 149, 0.08);
+    }
+
+    .detail-inner {
+      display: grid;
+      gap: 22px;
+      padding: 26px;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+
+    .empty {
+      min-height: 100vh;
+      display: grid;
+      align-content: center;
+      gap: 16px;
+      padding: 34px;
+    }
+
+    .empty-mark {
+      width: 74px;
+      height: 74px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--purple);
+      background: var(--purple-soft);
+      font-size: 2rem;
+      font-weight: 900;
+    }
+
+    .empty h2 {
+      font-size: 1.8rem;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .empty p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .profile {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 14px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .portrait {
+      width: 92px;
+      height: 92px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--green-soft);
+      border: 1px solid var(--line);
+    }
+
+    .portrait.placeholder {
+      display: grid;
+      place-items: center;
+      color: var(--purple);
+      font-size: 1.8rem;
+      font-weight: 900;
+    }
+
+    .profile h2 {
+      font-size: 1.55rem;
+      line-height: 1.1;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .party-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      max-width: 100%;
+      margin-top: 9px;
+      border-radius: 8px;
+      padding: 6px 9px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #fff;
+      overflow-wrap: anywhere;
+    }
+
+    .role-badge {
+      display: inline-flex;
+      max-width: 100%;
+      margin-top: 8px;
+      border-radius: 8px;
+      padding: 6px 9px;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .fact,
+    .section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 4px 0 rgba(124, 58, 237, 0.1);
+    }
+
+    .fact {
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .value {
+      margin-top: 6px;
+      font-size: 1.18rem;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .section {
+      padding: 18px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .section h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .accordion {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      min-width: 0;
+      box-shadow: 0 4px 0 rgba(124, 58, 237, 0.1);
+    }
+
+    .accordion + .accordion {
+      margin-top: 0;
+    }
+
+    .accordion summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .accordion summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .accordion summary::after {
+      content: "+";
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      color: var(--purple);
+      background: var(--purple-soft);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .accordion[open] summary {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .accordion[open] summary::after {
+      content: "-";
+    }
+
+    .accordion-body {
+      padding: 16px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #edf0ec;
+      margin: 10px 0;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+    }
+
+    .fund-lines,
+    .case-list,
+    .usage-list {
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .usage-list div,
+    .case-list div {
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: var(--paper);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .case-list .warn {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .photo {
+      position: relative;
+      min-height: 132px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--paper);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .photo img {
+      width: 100%;
+      height: 100%;
+      min-height: 132px;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.96);
+    }
+
+    .photo span {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 28px 9px 8px;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.68));
+    }
+
+    .photo-placeholder {
+      min-height: 132px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      padding: 18px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .disclaimer {
+      border: 1px solid #ecd48b;
+      border-radius: 8px;
+      padding: 14px;
+      color: #4c1d95;
+      background: var(--purple-soft);
+      font-size: 0.82rem;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      box-shadow: 0 4px 0 rgba(124, 58, 237, 0.1);
+    }
+
+    .disclaimer a,
+    .section a {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .leaflet-container {
+      background: #eef2f0;
+      font-family: inherit;
+    }
+
+    .leaflet-tile-pane {
+      filter: saturate(0.35) contrast(0.92) brightness(1.04);
+    }
+
+    .leaflet-tooltip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      font-family: inherit;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 330px minmax(0, 1fr);
+      }
+
+      .detail {
+        grid-column: 1 / -1;
+        min-height: auto;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .empty {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .site-banner {
+        display: grid;
+        gap: 6px;
+      }
+
+   
+
+      .app {
+        display: block;
+      }
+
+      .sidebar,
+      .detail {
+        min-height: auto;
+      }
+
+      .constituency-list {
+        max-height: 260px;
+      }
+
+      .map-shell {
+        height: 68vh;
+        min-height: 520px;
+      }
+
+      .map-topbar {
+        display: grid;
+        right: 12px;
+        left: 12px;
+        top: 12px;
+      }
+
+      .legend {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .sidebar,
+      .detail-inner,
+      .empty {
+        padding: 18px;
+      }
+
+      .facts,
+      .photo-grid,
+      .profile {
+        grid-template-columns: 1fr;
+      }
+
+      .portrait {
+        width: 100%;
+        height: 180px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-banner">
+    <div class="site-title">myrepresentative.com</div>
+  </header>
+  <main class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="eyebrow">MLA Constituency Explorer</div>
+        <h1>Southern States Dashboard</h1>
+        <p>Select a state, click a constituency boundary, and review MLA profile, affidavit declarations, fund use, and locality photos.</p>
+      </div>
+
+      <div id="stateGrid" class="state-grid"></div>
+
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="Search any constituency, MLA, district, party, or state">
+        <div id="searchHelp" class="search-help">Search works across all five states. Click a result to open its MLA details.</div>
+      </div>
+      <div id="partyFilters" class="party-filters" aria-label="Party filters"></div>
+      <div id="stateInsights" class="insights" aria-label="State affidavit insights"></div>
+      <div id="constituencyList" class="constituency-list" aria-label="Constituency list"></div>
+
+      <div class="source-note">
+        Boundary source: local Assembly Constituency GeoJSON from `maps-master`. MLA and affidavit summaries are imported from ADR/MyNeta winner and candidate pages, with NeVA/India.gov/ECI links retained for cross-checking.
+      </div>
+    </aside>
+
+    <section class="map-shell">
+      <div id="map"></div>
+      <div class="map-topbar">
+        <div class="map-title">
+          <h2 id="mapHeading">Loading constituencies</h2>
+          <p id="mapSubheading">Preparing southern state boundaries.</p>
+        </div>
+        <div class="legend" id="mapLegend">
+          <span><i style="background:#9aa39c"></i>Loading parties</span>
+        </div>
+      </div>
+    </section>
+
+    <aside id="detail" class="detail">
+      <div class="empty">
+        <div class="empty-mark">AC</div>
+        <h2>Pick any constituency on the map.</h2>
+        <p>The detail panel will show the MLA profile, self-declared assets and liabilities, criminal case summary, local fund utilisation, and photos that describe the constituency.</p>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const STATES = {
+      TN: { name: "Tamil Nadu", requested: "TN", color: "#e11d48", capital: "Chennai" },
+      AP: { name: "Andhra Pradesh", requested: "AP", color: "#00a86b", capital: "Amaravati" },
+      KA: { name: "Karnataka", requested: "KT", color: "#7c3aed", capital: "Bengaluru" },
+      KL: { name: "Kerala", requested: "KL", color: "#0891b2", capital: "Thiruvananthapuram" },
+      TG: { name: "Telangana", requested: "TG", color: "#f59e0b", capital: "Hyderabad" }
+    };
+
+    const PARTIES = [
+      { name: "DMK", color: "#e11d48" },
+      { name: "AIADMK", color: "#06b6d4" },
+      { name: "Telugu Desam Party", color: "#facc15" },
+      { name: "TDP", color: "#facc15" },
+      { name: "Janasena Party", color: "#ef4444" },
+      { name: "INC", color: "#2563eb" },
+      { name: "Indian National Congress", color: "#2563eb" },
+      { name: "Bharatiya Janata Party", color: "#f97316" },
+      { name: "BJP", color: "#f97316" },
+      { name: "Yuvajana Sramika Rythu Congress Party", color: "#22c55e" },
+      { name: "YSRCP", color: "#22c55e" },
+      { name: "Communist Party of India (Marxist)", color: "#dc2626" },
+      { name: "CPI(M)", color: "#dc2626" },
+      { name: "Communist Party of India", color: "#b91c1c" },
+      { name: "CPI", color: "#b91c1c" },
+      { name: "Indian Union Muslim League", color: "#16a34a" },
+      { name: "IUML", color: "#16a34a" },
+      { name: "BRS", color: "#ec4899" },
+      { name: "All India Majlis-E-Ittehadul Muslimeen", color: "#14b8a6" },
+      { name: "AIMIM", color: "#14b8a6" },
+      { name: "Pattali Makkal Katchi", color: "#f59e0b" },
+      { name: "Viduthalai Chiruthaigal Katchi", color: "#8b5cf6" },
+      { name: "Kalyana Rajya Pragathi Paksha", color: "#84cc16" },
+      { name: "Sarvodaya Karnataka Paksha", color: "#0ea5e9" },
+      { name: "Kerala Congress (M)", color: "#f59e0b" },
+      { name: "NCP", color: "#0284c7" },
+      { name: "IND", color: "#64748b" }
+    ];
+
+    const PARTY_FALLBACK_COLORS = [
+      "#e11d48",
+      "#22c55e",
+      "#2563eb",
+      "#f97316",
+      "#8b5cf6",
+      "#06b6d4",
+      "#ec4899",
+      "#84cc16"
+    ];
+
+    const ROLE_COLORS = {
+      CM: { label: "Chief Minister", color: "#000000", stroke: "#ffffff", symbol: "CM" },
+      LOP: { label: "Leader of Opposition", color: "#00e5ff", stroke: "#001219", symbol: "LO" }
+    };
+
+    const CONSTITUENCY_ROLES = [
+      { state: "TN", seat: "Kolathur", role: "CM", person: "M. K. Stalin" },
+      { state: "TN", seat: "Edappadi", role: "LOP", person: "Edappadi K. Palaniswami" },
+      { state: "AP", seat: "Kuppam", role: "CM", person: "N. Chandrababu Naidu" },
+      { state: "KA", seat: "Varuna", role: "CM", person: "Siddaramaiah" },
+      { state: "KA", seat: "Padmanaba Nagar", role: "LOP", person: "R. Ashoka" },
+      { state: "KL", seat: "Dharmadam", role: "CM", person: "Pinarayi Vijayan" },
+      { state: "KL", seat: "Paravur", role: "LOP", person: "V. D. Satheesan" },
+      { state: "TG", seat: "Kodangal", role: "CM", person: "A. Revanth Reddy" },
+      { state: "TG", seat: "Gajwel", role: "LOP", person: "K. Chandrashekar Rao" }
+    ];
+
+    const PHOTO_THEMES = {
+      TN: ["temple street", "textile market", "coastal road", "farmland"],
+      AP: ["coastal town", "river delta", "village road", "heritage site"],
+      KA: ["market street", "tech corridor", "coffee hills", "tank lake"],
+      KL: ["backwaters", "fishing harbour", "hill road", "town market"],
+      TG: ["urban street", "tank bund", "dryland farm", "heritage bazaar"]
+    };
+
+    const map = L.map("map", {
+      zoomControl: true,
+      attributionControl: true,
+      worldCopyJump: true,
+      minZoom: 7,
+      maxZoom: 12,
+      maxBounds: [[5, 60], [38, 100]],
+      maxBoundsViscosity: 0.85
+    });
+
+    map.attributionControl.setPrefix("");
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+      subdomains: "abcd",
+      maxZoom: 10
+    }).addTo(map);
+    map.scrollWheelZoom.disable();
+    let lastWheelZoomAt = 0;
+    L.DomEvent.on(map.getContainer(), "wheel", (event) => {
+      L.DomEvent.stop(event);
+      const now = Date.now();
+      if (now - lastWheelZoomAt < 120) return;
+      lastWheelZoomAt = now;
+      const zoomDelta = event.deltaY < 0 ? 1 : -1;
+      const nextZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), map.getZoom() + zoomDelta));
+      if (nextZoom !== map.getZoom()) {
+        map.setZoomAround(map.mouseEventToLatLng(event), nextZoom);
+      }
+    });
+    map.createPane("constituencies");
+    map.getPane("constituencies").style.zIndex = 420;
+    map.createPane("roleMarkers");
+    map.getPane("roleMarkers").style.zIndex = 650;
+
+    let officialData = { sources: {}, states: {}, records: [] };
+    let fundsData = { sources: {}, states: {} };
+    let recordsBySeat = new Map();
+    let recordsByState = new Map();
+    let allFeatures = [];
+    let visibleFeatures = [];
+    let geoLayer = null;
+    let roleMarkerLayer = null;
+    let activeState = "TN";
+    let activeLayer = null;
+    let activeFeatureId = null;
+    let activeParty = "ALL";
+
+    const stateGrid = document.getElementById("stateGrid");
+    const listEl = document.getElementById("constituencyList");
+    const stateInsights = document.getElementById("stateInsights");
+    const partyFilters = document.getElementById("partyFilters");
+    const searchInput = document.getElementById("searchInput");
+    const mapLegend = document.getElementById("mapLegend");
+    const mapHeading = document.getElementById("mapHeading");
+    const mapSubheading = document.getElementById("mapSubheading");
+    const detail = document.getElementById("detail");
+
+    function hashText(text) {
+      return String(text).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    }
+
+    function normalizeSeatName(name) {
+      return String(name || "")
+        .replace(/\s*\((SC|ST)\)\s*/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function exactSeatName(name) {
+      return String(name || "")
+        .replace(/\((sc|st)\)/gi, (match) => match.toUpperCase())
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function compactSeatName(name) {
+      return normalizeSeatName(name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function editDistance(a, b) {
+      if (!a || !b) return Math.max(a.length, b.length);
+      const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+      for (let i = 1; i <= a.length; i += 1) {
+        let diagonal = previous[0];
+        previous[0] = i;
+        for (let j = 1; j <= b.length; j += 1) {
+          const temp = previous[j];
+          previous[j] = Math.min(
+            previous[j] + 1,
+            previous[j - 1] + 1,
+            diagonal + (a[i - 1] === b[j - 1] ? 0 : 1)
+          );
+          diagonal = temp;
+        }
+      }
+      return previous[b.length];
+    }
+
+    function resultFor(feature) {
+      const p = feature.properties;
+      const exact = recordsBySeat.get(`${p.STATE_CODE_UI}:${exactSeatName(p.AC_NAME_UI).toLowerCase()}`);
+      const fallback = recordsBySeat.get(`${p.STATE_CODE_UI}:${normalizeSeatName(p.AC_NAME_UI).toLowerCase()}`);
+      if (exact || fallback) return exact || fallback;
+
+      const target = compactSeatName(p.AC_NAME_UI);
+      const stateRows = recordsByState.get(p.STATE_CODE_UI) || [];
+      const overrides = {
+        "KA:gangawati": "gangavathi",
+        "TN:chepaukthiruvalliken": "chepaukthiruvallikeni",
+        "TG:bellampalle": "bellampalli",
+        "TG:jangoan": "jangaon",
+        "KL:manjeshwar": "manjeshwar"
+      };
+      const overrideTarget = overrides[`${p.STATE_CODE_UI}:${target}`];
+      if (overrideTarget) {
+        const overrideMatch = stateRows.find((record) => record.compactSeat === overrideTarget);
+        if (overrideMatch) return overrideMatch.record;
+      }
+      const prefixMatch = stateRows.find((record) => {
+        const key = record.compactSeat;
+        return target.length >= 6 && key.length >= 6 && (key.startsWith(target) || target.startsWith(key));
+      });
+      if (prefixMatch) return prefixMatch.record;
+
+      let best = null;
+      let bestDistance = Infinity;
+      stateRows.forEach((record) => {
+        const distance = editDistance(target, record.compactSeat);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = record.record;
+        }
+      });
+      const limit = Math.max(2, Math.floor(target.length * 0.18));
+      return bestDistance <= limit ? best : null;
+    }
+
+    function partyFor(feature) {
+      const verified = resultFor(feature);
+      if (verified) return verified.partyShort || verified.party;
+      return "Unverified";
+    }
+
+    function displayPartyFor(feature) {
+      const verified = resultFor(feature);
+      return verified ? verified.partyShort || verified.party : "Data pending";
+    }
+
+    function partyColor(party) {
+      const item = PARTIES.find((entry) => entry.name === party);
+      if (item) return item.color;
+      if (!party || party === "Data pending" || party === "Unverified") return "#9aa39c";
+      return PARTY_FALLBACK_COLORS[hashText(party) % PARTY_FALLBACK_COLORS.length];
+    }
+
+    function mapColorForParty(party) {
+      return party === "Data pending" || party === "Unverified" ? "#9aa39c" : partyColor(party);
+    }
+
+    function roleForFeature(feature) {
+      const p = feature.properties;
+      const seat = compactSeatName(p.AC_NAME_UI);
+      return CONSTITUENCY_ROLES.find((item) =>
+        item.state === p.STATE_CODE_UI && compactSeatName(item.seat) === seat
+      ) || null;
+    }
+
+    function formatMoney(value) {
+      const raw = String(value || "").trim();
+      const amount = Number(raw.replace(/[^0-9]/g, ""));
+      if (!amount) return raw || "Not available";
+      if (amount >= 10000000) return `${trimDecimal(amount / 10000000)} Cr`;
+      if (amount >= 100000) return `${trimDecimal(amount / 100000)} L`;
+      if (amount >= 1000) return `${trimDecimal(amount / 1000)} K`;
+      return amount.toLocaleString("en-IN");
+    }
+
+    function trimDecimal(value) {
+      return value.toFixed(1).replace(/\.0$/, "");
+    }
+
+    function moneyNumber(value) {
+      const raw = String(value || "");
+      if (raw.toLowerCase().includes("image protected")) return null;
+      const amount = Number(raw.replace(/[^0-9]/g, ""));
+      return amount || null;
+    }
+
+    function profileFor(feature) {
+      const p = feature.properties;
+      const verified = resultFor(feature);
+      const affidavit = verified && verified.affidavit ? verified.affidavit : {};
+
+      return {
+        verified: Boolean(verified),
+        name: verified ? verified.name : "MLA data not verified yet",
+        age: verified && verified.age ? verified.age : "Not available",
+        profession: verified && verified.profession ? verified.profession : "Not available",
+        spouseProfession: verified && verified.spouseProfession ? verified.spouseProfession : "Not available",
+        photo: verified && verified.photo ? verified.photo : "",
+        party: verified ? (verified.partyShort || verified.party) : "Data pending",
+        partyFull: verified ? verified.party : "Data pending",
+        election: verified ? verified.election : "",
+        sources: verified ? verified.sources || [] : [],
+        candidateUrl: verified ? verified.mynetaCandidateUrl || "" : "",
+        affidavitStatus: affidavit.status || "pending_import",
+        education: affidavit.education || "Pending import",
+        assets: affidavit.assets || "Pending import",
+        liabilities: affidavit.liabilities || "Pending import",
+        cases: typeof affidavit.criminalCases === "number" ? affidavit.criminalCases : null,
+        criminalDetails: Array.isArray(affidavit.criminalDetails) ? affidavit.criminalDetails : [],
+        portrait: `https://picsum.photos/seed/mla-${encodeURIComponent(p.AC_NAME_UI)}/280/280`
+      };
+    }
+
+    function renderStateButtons(counts) {
+      stateGrid.innerHTML = Object.entries(STATES).map(([code, state]) => `
+        <button class="state-btn ${code === activeState ? "active" : ""}" data-state="${code}">
+          <span class="state-code" style="background:${state.color}">${state.requested}</span>
+          <span>
+            <span class="state-name">${state.name}</span>
+            <span class="state-meta">${sourceStatus(code)}</span>
+          </span>
+          <span class="state-count">${counts[code] || 0}</span>
+        </button>
+      `).join("");
+
+      stateGrid.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => selectState(button.dataset.state));
+      });
+    }
+
+    function sourceStatus(code) {
+      const state = officialData.states && officialData.states[code];
+      if (!state) return "Source pending";
+      if (state.status === "imported") return `${state.officialSeats || 0} official seats`;
+      if (state.status === "partial") return "Official roster import: partial";
+      if (state.status === "complete") return "Official roster import: complete";
+      return "Official roster import: pending";
+    }
+
+    function selectState(code) {
+      activeState = code;
+      activeLayer = null;
+      activeFeatureId = null;
+      activeParty = "ALL";
+      searchInput.value = "";
+      renderStateButtons(countByState());
+      drawState();
+      renderEmpty();
+    }
+
+    function countByState() {
+      return allFeatures.reduce((counts, feature) => {
+        const code = feature.properties.STATE_CODE_UI;
+        const state = officialData.states && officialData.states[code];
+        counts[code] = state && state.officialSeats ? state.officialSeats : (counts[code] || 0) + 1;
+        return counts;
+      }, {});
+    }
+
+    function drawState() {
+      visibleFeatures = allFeatures.filter((feature) => feature.properties.STATE_CODE_UI === activeState);
+      const state = STATES[activeState];
+      const stateMeta = officialData.states && officialData.states[activeState] ? officialData.states[activeState] : {};
+      const imported = visibleFeatures.filter((feature) => resultFor(feature)).length;
+      mapHeading.textContent = `${state.name} Assembly Map`;
+      mapSubheading.textContent = `${stateMeta.officialSeats || visibleFeatures.length} official seats. ${visibleFeatures.length} map regions. ${imported} regions matched to MLA data.`;
+
+      if (geoLayer) {
+        map.removeLayer(geoLayer);
+      }
+      if (roleMarkerLayer) {
+        map.removeLayer(roleMarkerLayer);
+      }
+
+      geoLayer = L.geoJSON({ type: "FeatureCollection", features: visibleFeatures }, {
+        pane: "constituencies",
+        style: styleFeature,
+        onEachFeature(feature, layer) {
+          const p = feature.properties;
+          const role = roleForFeature(feature);
+          const roleLine = role ? `<br><span>${ROLE_COLORS[role.role].label}: ${role.person}</span>` : "";
+          layer.bindTooltip(`${p.AC_NAME_UI}<br><span>${p.DIST_NAME_UI}</span>${roleLine}`, { sticky: true });
+          layer.on("click", () => selectFeature(feature, layer));
+          layer.on("mouseover", () => {
+            if (layer !== activeLayer) layer.setStyle({ weight: 1.8, fillOpacity: 0.82 });
+          });
+          layer.on("mouseout", () => {
+            if (layer !== activeLayer) layer.setStyle(styleFeature(feature));
+          });
+        }
+      }).addTo(map);
+
+      if (geoLayer.getBounds().isValid()) {
+        map.fitBounds(geoLayer.getBounds(), { padding: [26, 26] });
+      }
+      renderRoleMarkers();
+      renderLegend();
+      renderPartyFilters();
+      renderStateInsights();
+      renderConstituencyList();
+    }
+
+    function renderRoleMarkers() {
+      roleMarkerLayer = L.layerGroup();
+      visibleFeatures.forEach((feature) => {
+        const role = roleForFeature(feature);
+        if (!role) return;
+        const style = ROLE_COLORS[role.role];
+        const centroid = geometryCentroid(feature.geometry);
+        if (!centroid) return;
+        const marker = L.marker([centroid.lat, centroid.lng], {
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="role-marker ${role.role === "LOP" ? "lop" : ""}" style="background:${style.color}">${style.symbol}</div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+          }),
+          pane: "roleMarkers",
+          zIndexOffset: 1000
+        });
+        marker.bindTooltip(`${style.label}: ${role.person}<br><span>${feature.properties.AC_NAME_UI}</span>`, { sticky: true });
+        marker.on("click", () => {
+          const layer = findLayer(feature);
+          if (layer) selectFeature(layer.feature, layer);
+        });
+        roleMarkerLayer.addLayer(marker);
+      });
+      roleMarkerLayer.addTo(map);
+    }
+
+    function styleFeature(feature) {
+      const party = partyFor(feature);
+      const role = roleForFeature(feature);
+      if (role) {
+        const roleStyle = ROLE_COLORS[role.role];
+        return {
+          color: roleStyle.stroke,
+          weight: 3.4,
+          opacity: 1,
+          fillColor: roleStyle.color,
+          fillOpacity: 0.96
+        };
+      }
+      return {
+        color: "#ffffff",
+        weight: party === "Unverified" ? 0.5 : 0.8,
+        opacity: 1,
+        fillColor: mapColorForParty(party),
+        fillOpacity: party === "Unverified" ? 0.28 : 0.82
+      };
+    }
+
+    function featureId(feature) {
+      const p = feature.properties;
+      return `${p.STATE_CODE_UI}-${p.AC_NO}-${p.AC_NAME_UI}`;
+    }
+
+    function selectFeature(feature, layer) {
+      if (activeLayer && activeLayer !== layer) {
+        activeLayer.setStyle(styleFeature(activeLayer.feature));
+      }
+      activeLayer = layer;
+      activeFeatureId = featureId(feature);
+      const role = roleForFeature(feature);
+      layer.setStyle({ color: role ? ROLE_COLORS[role.role].stroke : "#17201b", weight: role ? 4.2 : 2.4, fillOpacity: 0.98 });
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+      renderConstituencyList();
+      renderDetail(feature);
+    }
+
+    function openFeature(feature) {
+      const targetState = feature.properties.STATE_CODE_UI;
+      if (targetState !== activeState) {
+        activeState = targetState;
+        activeLayer = null;
+        activeFeatureId = null;
+        activeParty = "ALL";
+        renderStateButtons(countByState());
+        drawState();
+      }
+
+      const layer = findLayer(feature);
+      if (layer) {
+        selectFeature(layer.feature, layer);
+        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 10 });
+      } else {
+        activeFeatureId = featureId(feature);
+        renderDetail(feature);
+      }
+    }
+
+    function featureForRecord(record) {
+      if (!record) return null;
+      const target = compactSeatName(record.constituency);
+      const sameState = allFeatures.filter((feature) => feature.properties.STATE_CODE_UI === record.state);
+      return sameState.find((feature) => compactSeatName(feature.properties.AC_NAME_UI) === target) ||
+        sameState.find((feature) => {
+          const key = compactSeatName(feature.properties.AC_NAME_UI);
+          return key.length >= 6 && target.length >= 6 && (key.startsWith(target) || target.startsWith(key));
+        }) ||
+        sameState.reduce((best, feature) => {
+          const distance = editDistance(compactSeatName(feature.properties.AC_NAME_UI), target);
+          if (!best || distance < best.distance) return { feature, distance };
+          return best;
+        }, null)?.feature ||
+        null;
+    }
+
+    function openRecord(record) {
+      const feature = featureForRecord(record);
+      if (feature) {
+        openFeature(feature);
+      }
+    }
+
+    function partyCounts() {
+      return visibleFeatures.reduce((counts, feature) => {
+        const party = displayPartyFor(feature);
+        counts[party] = (counts[party] || 0) + 1;
+        return counts;
+      }, {});
+    }
+
+    function renderPartyFilters() {
+      const counts = partyCounts();
+      const parties = Object.keys(counts).sort((a, b) => {
+        if (a === "Data pending") return 1;
+        if (b === "Data pending") return -1;
+        return a.localeCompare(b);
+      });
+      partyFilters.innerHTML = [
+        `<button class="party-filter ${activeParty === "ALL" ? "active" : ""}" data-party="ALL">All map regions ${visibleFeatures.length}</button>`,
+        ...parties.map((party) => `
+          <button class="party-filter ${activeParty === party ? "active" : ""}" data-party="${party}" style="${activeParty === party ? `background:${mapColorForParty(party)};color:#fff` : ""}">
+            ${party} ${counts[party]}
+          </button>
+        `)
+      ].join("");
+
+      partyFilters.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeParty = button.dataset.party;
+          renderPartyFilters();
+          renderConstituencyList();
+        });
+      });
+    }
+
+    function stateRecords(code) {
+      return (officialData.records || []).filter((record) => record.state === code);
+    }
+
+    function maxBy(records, getValue) {
+      return records.reduce((best, record) => {
+        const value = getValue(record);
+        if (value === null || Number.isNaN(value)) return best;
+        if (!best || value > best.value) return { record, value };
+        return best;
+      }, null);
+    }
+
+    function minBy(records, getValue) {
+      return records.reduce((best, record) => {
+        const value = getValue(record);
+        if (value === null || Number.isNaN(value)) return best;
+        if (!best || value < best.value) return { record, value };
+        return best;
+      }, null);
+    }
+
+    function topEntries(counts, limit = 3) {
+      return Object.entries(counts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, limit)
+        .map(([name, count]) => `${name} ${count}`)
+        .join(" / ");
+    }
+
+    function renderStateInsights() {
+      const records = stateRecords(activeState);
+      if (!records.length) {
+        stateInsights.innerHTML = "";
+        return;
+      }
+      const richest = maxBy(records, (record) => moneyNumber(record.affidavit && record.affidavit.assets));
+      const lowestAssets = minBy(records, (record) => moneyNumber(record.affidavit && record.affidavit.assets));
+      const highestLiabilities = maxBy(records, (record) => moneyNumber(record.affidavit && record.affidavit.liabilities));
+      const mostCases = maxBy(records, (record) => record.affidavit && typeof record.affidavit.criminalCases === "number" ? record.affidavit.criminalCases : null);
+      const cleanCount = records.filter((record) => record.affidavit && record.affidavit.criminalCases === 0).length;
+      const croreCount = records.filter((record) => {
+        const assets = moneyNumber(record.affidavit && record.affidavit.assets);
+        return assets !== null && assets >= 10000000;
+      }).length;
+      const partyMix = records.reduce((counts, record) => {
+        const party = record.partyShort || record.party || "Other";
+        counts[party] = (counts[party] || 0) + 1;
+        return counts;
+      }, {});
+      const educationMix = records.reduce((counts, record) => {
+        const education = record.affidavit && record.affidavit.education ? record.affidavit.education : "Not available";
+        counts[education] = (counts[education] || 0) + 1;
+        return counts;
+      }, {});
+      stateInsights.innerHTML = `
+        <h2>${STATES[activeState].name} Affidavit Matrix</h2>
+        <div class="insight-grid">
+          ${renderInsight("Richest MLA", richest ? richest.record.name : "Not available", richest ? `${richest.record.constituency} / ${formatMoney(richest.record.affidavit.assets)}` : "", "rank-rich", richest ? richest.record : null)}
+          ${renderInsight("Lowest Assets", lowestAssets ? lowestAssets.record.name : "Not available", lowestAssets ? `${lowestAssets.record.constituency} / ${formatMoney(lowestAssets.record.affidavit.assets)}` : "", "rank-low", lowestAssets ? lowestAssets.record : null)}
+          ${renderInsight("Highest Liabilities", highestLiabilities ? highestLiabilities.record.name : "Not available", highestLiabilities ? `${highestLiabilities.record.constituency} / ${formatMoney(highestLiabilities.record.affidavit.liabilities)}` : "", "rank-liability", highestLiabilities ? highestLiabilities.record : null)}
+          ${renderInsight("Most Criminal Cases", mostCases ? mostCases.record.name : "Not available", mostCases ? `${mostCases.record.constituency} / ${mostCases.value} cases` : "", "rank-crime", mostCases ? mostCases.record : null)}
+          ${renderInsight("Clean Affidavits", `${cleanCount} MLAs`, "0 declared criminal cases")}
+          ${renderInsight("Crorepati MLAs", `${croreCount} MLAs`, "Assets of at least 1 Cr")}
+          ${renderInsight("Party Mix", topEntries(partyMix, 5), "Top parties", "insight-wide")}
+          ${renderInsight("Education Mix", topEntries(educationMix, 4), "Common education entries", "insight-wide")}
+        </div>
+      `;
+      stateInsights.querySelectorAll("[data-record-key]").forEach((card) => {
+        card.addEventListener("click", () => {
+          const record = records[Number(card.dataset.recordKey)];
+          openRecord(record);
+        });
+      });
+    }
+
+    function renderInsight(label, value, note, className = "", record = null) {
+      const recordIndex = record ? stateRecords(activeState).indexOf(record) : -1;
+      return `
+        <button class="insight-card ${className} ${record ? "clickable" : ""}" ${record ? `data-record-key="${recordIndex}"` : ""}>
+          <span>${label}</span>
+          <strong>${value}</strong>
+          ${note ? `<span>${note}</span>` : ""}
+        </button>
+      `;
+    }
+
+    function renderLegend() {
+      const counts = partyCounts();
+      const roleCounts = visibleFeatures.reduce((roles, feature) => {
+        const role = roleForFeature(feature);
+        if (role) roles[role.role] = (roles[role.role] || 0) + 1;
+        return roles;
+      }, {});
+      const parties = Object.keys(counts).sort((a, b) => {
+        if (a === "Data pending") return 1;
+        if (b === "Data pending") return -1;
+        return counts[b] - counts[a] || a.localeCompare(b);
+      });
+
+      const roleItems = Object.keys(roleCounts).map((roleKey) => {
+        const roleStyle = ROLE_COLORS[roleKey];
+        return `<span class="legend-role"><b class="legend-symbol" style="background:${roleStyle.color};border:2px solid ${roleStyle.stroke};color:${roleKey === "LOP" ? "#001219" : "#fff"}">${roleStyle.symbol}</b>${roleStyle.label} ${roleCounts[roleKey]}</span>`;
+      });
+
+      mapLegend.innerHTML = [
+        ...roleItems,
+        ...parties.map((party) => `
+          <span class="legend-item"><i style="background:${mapColorForParty(party)}"></i>${party} ${counts[party]}</span>
+        `)
+      ].join("");
+    }
+
+    function renderConstituencyList() {
+      const query = searchInput.value.trim().toLowerCase();
+      const isGlobalSearch = query.length > 0;
+      const sourceFeatures = isGlobalSearch ? allFeatures : visibleFeatures;
+      const filtered = sourceFeatures.filter((feature) => {
+        const p = feature.properties;
+        const party = displayPartyFor(feature);
+        const mla = resultFor(feature);
+        const role = roleForFeature(feature);
+        const state = STATES[p.STATE_CODE_UI];
+        const matchesParty = isGlobalSearch || activeParty === "ALL" || party === activeParty;
+        const searchable = [
+          p.AC_NAME_UI,
+          p.DIST_NAME_UI,
+          party,
+          state ? state.name : "",
+          state ? state.requested : "",
+          mla ? mla.name : "",
+          mla ? mla.party : "",
+          mla ? mla.partyShort : "",
+          role ? ROLE_COLORS[role.role].label : "",
+          role ? role.person : ""
+        ].join(" ").toLowerCase();
+        const compactQuery = compactSeatName(query);
+        const matchesQuery = !query || searchable.includes(query) || compactSeatName(searchable).includes(compactQuery);
+        return matchesParty && matchesQuery;
+      }).sort((a, b) => {
+        if (isGlobalSearch) {
+          return searchRank(a, query) - searchRank(b, query) ||
+            a.properties.STATE_CODE_UI.localeCompare(b.properties.STATE_CODE_UI) ||
+            a.properties.AC_NAME_UI.localeCompare(b.properties.AC_NAME_UI);
+        }
+        const ap = displayPartyFor(a);
+        const bp = displayPartyFor(b);
+        const partySort = ap === "Data pending" && bp !== "Data pending"
+          ? 1
+          : bp === "Data pending" && ap !== "Data pending"
+            ? -1
+            : ap.localeCompare(bp);
+        return partySort || a.properties.AC_NAME_UI.localeCompare(b.properties.AC_NAME_UI);
+      });
+
+      if (!filtered.length) {
+        listEl.innerHTML = `<div class="list-empty">No constituency, MLA, district, party, or state matched "${searchInput.value.trim()}". Try a shorter spelling.</div>`;
+        return;
+      }
+
+      let lastParty = "";
+      listEl.innerHTML = filtered.map((feature, index) => {
+        const p = feature.properties;
+        const id = featureId(feature);
+        const party = displayPartyFor(feature);
+        const mla = resultFor(feature);
+        const role = roleForFeature(feature);
+        const group = isGlobalSearch ? p.STATE_CODE_UI : party;
+        const heading = (isGlobalSearch || activeParty === "ALL") && group !== lastParty
+          ? `<div class="party-heading">${isGlobalSearch ? STATES[p.STATE_CODE_UI].name : party}</div>`
+          : "";
+        lastParty = group;
+        return `
+          ${heading}
+          <button class="constituency-btn ${id === activeFeatureId ? "active" : ""}" data-id="${id}" data-index="${index}">
+            ${p.AC_NAME_UI}
+            <span>${p.DIST_NAME_UI} district / ${party}${role ? ` / ${ROLE_COLORS[role.role].label}` : ""}${isGlobalSearch ? ` / ${mla ? mla.name : "MLA data pending"}` : ""}</span>
+          </button>
+        `;
+      }).join("");
+
+      listEl.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          const feature = filtered[Number(button.dataset.index)];
+          openFeature(feature);
+        });
+      });
+    }
+
+    function searchRank(feature, query) {
+      const p = feature.properties;
+      const q = query.toLowerCase();
+      const mla = resultFor(feature);
+      const role = roleForFeature(feature);
+      const state = STATES[p.STATE_CODE_UI];
+      const fields = [
+        p.AC_NAME_UI,
+        mla ? mla.name : "",
+        role ? ROLE_COLORS[role.role].label : "",
+        role ? role.person : "",
+        p.DIST_NAME_UI,
+        state ? state.name : "",
+        displayPartyFor(feature)
+      ].map((value) => String(value || "").toLowerCase());
+      const exact = fields.findIndex((value) => value === q);
+      if (exact >= 0) return exact;
+      const starts = fields.findIndex((value) => value.startsWith(q));
+      if (starts >= 0) return 10 + starts;
+      const includes = fields.findIndex((value) => value.includes(q));
+      if (includes >= 0) return 20 + includes;
+      return 100 + editDistance(compactSeatName(p.AC_NAME_UI), compactSeatName(query));
+    }
+
+    function findLayer(feature) {
+      let found = null;
+      geoLayer.eachLayer((layer) => {
+        if (featureId(layer.feature) === featureId(feature)) found = layer;
+      });
+      return found;
+    }
+
+    function renderEmpty() {
+      detail.innerHTML = `
+        <div class="empty">
+          <div class="empty-mark">${STATES[activeState].requested}</div>
+          <h2>Select a constituency in ${STATES[activeState].name}.</h2>
+          <p>Every boundary is clickable. The panel will open with MLA profile, affidavit summary, fund utilisation, and constituency photos.</p>
+        </div>
+      `;
+    }
+
+    function renderDetail(feature) {
+      const p = feature.properties;
+      const mla = profileFor(feature);
+      const role = roleForFeature(feature);
+      const caseRows = mla.cases === null
+        ? `<div>Affidavit criminal-case data has not been imported for this constituency yet.</div>`
+        : mla.cases === 0
+          ? `<div>No criminal cases declared in the imported affidavit row.</div>`
+          : [
+              `<div class="warn">${mla.cases} criminal case${mla.cases === 1 ? "" : "s"} declared in the affidavit summary.</div>`,
+              ...mla.criminalDetails.map((detail) => `<div class="warn">${detail}</div>`)
+            ].join("");
+      const portrait = mla.photo
+        ? `<img class="portrait" src="${mla.photo}" alt="${mla.name}">`
+        : mla.verified
+        ? `<div class="portrait placeholder">${mla.name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</div>`
+        : `<div class="portrait placeholder">?</div>`;
+      const assetValue = formatMoney(mla.assets);
+      const liabilityValue = formatMoney(mla.liabilities);
+
+      detail.innerHTML = `
+        <div class="detail-inner">
+          <div class="profile">
+            ${portrait}
+            <div>
+              <div class="eyebrow">${p.AC_NAME_UI} / ${p.DIST_NAME_UI}</div>
+              <h2>${mla.name}</h2>
+              ${role ? `<div class="role-badge" style="background:${ROLE_COLORS[role.role].color};color:${role.role === "LOP" ? "#001219" : "#fff"}">${ROLE_COLORS[role.role].label}: ${role.person}</div>` : ""}
+              <div class="party-pill" style="background:${mapColorForParty(mla.party)}">${mla.party}</div>
+              ${mla.election ? `<p style="color:var(--muted);margin-top:8px">${mla.partyFull} / ${mla.election} Assembly election</p>` : ""}
+            </div>
+          </div>
+
+          <div class="facts">
+            <div class="fact">
+              <div class="label">Age</div>
+              <div class="value">${mla.age}</div>
+            </div>
+            <div class="fact">
+              <div class="label">Education</div>
+              <div class="value">${mla.education}</div>
+            </div>
+            <div class="fact">
+              <div class="label">Profession</div>
+              <div class="value">${mla.profession}</div>
+            </div>
+            <div class="fact">
+              <div class="label">Spouse Profession</div>
+              <div class="value">${mla.spouseProfession}</div>
+            </div>
+            <div class="fact">
+              <div class="label">Assets</div>
+              <div class="value">${assetValue}</div>
+            </div>
+            <div class="fact">
+              <div class="label">Liabilities</div>
+              <div class="value">${liabilityValue}</div>
+            </div>
+          </div>
+
+          <details class="accordion" open>
+            <summary>Affidavit Declarations</summary>
+            <div class="accordion-body">
+              <div class="case-list">${caseRows}</div>
+              <p style="color:var(--muted);font-size:0.82rem;line-height:1.5;margin-top:10px">Affidavit source: ECI Candidate Affidavit Portal. Import status: ${mla.affidavitStatus.replace("_", " ")}.</p>
+            </div>
+          </details>
+
+          <details class="accordion">
+            <summary>Funds And Utilisation</summary>
+            <div class="accordion-body">
+              ${renderFundSection(feature)}
+            </div>
+          </details>
+
+          <details class="accordion">
+            <summary>Constituency Photos</summary>
+            <div class="accordion-body">
+              <div class="photo-grid" id="constituencyPhotos">
+                <div class="photo"><div class="photo-placeholder">Loading local photos</div><span>Wikimedia Commons nearby photos</span></div>
+              </div>
+            </div>
+          </details>
+
+          <div class="disclaimer">
+            Data notice: MLA names, parties, education, assets, liabilities, and criminal-case counts are imported from ADR/MyNeta winner tables, which summarize candidate affidavit declarations. Constituency fund values and verified locality photos still need official source imports.
+            ${mla.sources.length ? `<br><br>Sources: ${mla.sources.map((src) => `<a href="${src}" target="_blank" rel="noreferrer">${src.replace(/^https?:\/\//, "")}</a>`).join(", ")}` : ""}
+            ${mla.candidateUrl ? `<br><br>Candidate affidavit summary: <a href="${mla.candidateUrl}" target="_blank" rel="noreferrer">${mla.candidateUrl.replace(/^https?:\/\//, "")}</a>` : ""}
+          </div>
+        </div>
+      `;
+      loadCommonsPhotos(feature);
+    }
+
+    function renderFundSection(feature) {
+      const p = feature.properties;
+      const stateFund = fundsData.states && fundsData.states[p.STATE_CODE_UI] ? fundsData.states[p.STATE_CODE_UI] : null;
+      if (!stateFund) {
+        return `
+          <div class="fund-lines">
+            <div>No fund source configured for this state yet.</div>
+          </div>
+        `;
+      }
+
+      const allocated = stateFund.allocationPerConstituency
+        ? formatMoney(String(stateFund.allocationPerConstituency))
+        : stateFund.allocationLabel;
+      const sourceLinks = (stateFund.sources || []).map((source) =>
+        `<a href="${source}" target="_blank" rel="noreferrer">${source.replace(/^https?:\/\//, "")}</a>`
+      ).join(", ");
+
+      return `
+        <div class="fund-lines">
+          <div>Scheme: ${stateFund.scheme}</div>
+          <div>Allocation: ${allocated}</div>
+          <div>Financial year/source period: ${stateFund.financialYear}</div>
+          <div>Utilisation status: ${stateFund.utilisationStatus.replace(/_/g, " ")}</div>
+        </div>
+        <div class="usage-list" style="margin-top:10px">
+          ${(stateFund.statewide || []).map((item) => `<div>${item}</div>`).join("")}
+        </div>
+        <div class="usage-list" style="margin-top:10px">
+          ${(stateFund.workCategories || []).map((item) => `<div>${item}</div>`).join("")}
+        </div>
+        <p style="color:var(--muted);font-size:0.82rem;line-height:1.5;margin-top:10px">Fund sources: ${sourceLinks || "Not available"}</p>
+      `;
+    }
+
+    function geometryCentroid(geometry) {
+      const points = [];
+      function collect(coords) {
+        if (!Array.isArray(coords)) return;
+        if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+          points.push(coords);
+          return;
+        }
+        coords.forEach(collect);
+      }
+      collect(geometry.coordinates);
+      if (!points.length) return null;
+      const totals = points.reduce((sum, point) => {
+        sum.lng += point[0];
+        sum.lat += point[1];
+        return sum;
+      }, { lat: 0, lng: 0 });
+      return {
+        lat: totals.lat / points.length,
+        lng: totals.lng / points.length
+      };
+    }
+
+    async function loadCommonsPhotos(feature) {
+      const target = document.getElementById("constituencyPhotos");
+      if (!target) return;
+      const p = feature.properties;
+      const centroid = geometryCentroid(feature.geometry);
+      if (!centroid) {
+        renderPhotoFallback(target, p.AC_NAME_UI, "No map coordinate available for photo lookup.");
+        return;
+      }
+
+      const cacheKey = `commons:${p.STATE_CODE_UI}:${p.AC_NO}:${p.AC_NAME_UI}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          renderCommonsPhotos(target, JSON.parse(cached), p.AC_NAME_UI);
+          return;
+        } catch (error) {
+          localStorage.removeItem(cacheKey);
+        }
+      }
+
+      try {
+        const searchUrl = new URL("https://commons.wikimedia.org/w/api.php");
+        searchUrl.search = new URLSearchParams({
+          origin: "*",
+          format: "json",
+          action: "query",
+          list: "geosearch",
+          gscoord: `${centroid.lat}|${centroid.lng}`,
+          gsradius: "10000",
+          gsnamespace: "6",
+          gsprimary: "all",
+          gslimit: "8"
+        }).toString();
+        const searchResponse = await fetch(searchUrl);
+        const searchData = await searchResponse.json();
+        const pages = searchData.query && searchData.query.geosearch ? searchData.query.geosearch : [];
+        if (!pages.length) {
+          renderPhotoFallback(target, p.AC_NAME_UI, "No nearby Wikimedia Commons photos found.");
+          return;
+        }
+
+        const pageIds = pages.map((page) => page.pageid).join("|");
+        const infoUrl = new URL("https://commons.wikimedia.org/w/api.php");
+        infoUrl.search = new URLSearchParams({
+          origin: "*",
+          format: "json",
+          action: "query",
+          pageids: pageIds,
+          prop: "imageinfo",
+          iiprop: "url|extmetadata",
+          iiurlwidth: "520"
+        }).toString();
+        const infoResponse = await fetch(infoUrl);
+        const infoData = await infoResponse.json();
+        const photos = Object.values(infoData.query.pages || {})
+          .map((page) => {
+            const info = page.imageinfo && page.imageinfo[0] ? page.imageinfo[0] : null;
+            if (!info || !info.thumburl) return null;
+            const metadata = info.extmetadata || {};
+            return {
+              title: page.title.replace(/^File:/, ""),
+              thumb: info.thumburl,
+              source: info.descriptionurl,
+              artist: metadata.Artist ? stripHtml(metadata.Artist.value) : "",
+              license: metadata.LicenseShortName ? stripHtml(metadata.LicenseShortName.value) : ""
+            };
+          })
+          .filter(Boolean)
+          .slice(0, 4);
+
+        if (!photos.length) {
+          renderPhotoFallback(target, p.AC_NAME_UI, "Nearby Commons files did not include usable thumbnails.");
+          return;
+        }
+        localStorage.setItem(cacheKey, JSON.stringify(photos));
+        renderCommonsPhotos(target, photos, p.AC_NAME_UI);
+      } catch (error) {
+        renderPhotoFallback(target, p.AC_NAME_UI, "Photo lookup failed. Check network access or Commons API availability.");
+      }
+    }
+
+    function stripHtml(value) {
+      const node = document.createElement("div");
+      node.innerHTML = value;
+      return node.textContent || node.innerText || "";
+    }
+
+    function renderCommonsPhotos(target, photos, constituencyName) {
+      target.innerHTML = photos.map((photo) => `
+        <a class="photo" href="${photo.source}" target="_blank" rel="noreferrer">
+          <img src="${photo.thumb}" alt="${photo.title}">
+          <span>${constituencyName}: ${photo.title}${photo.license ? ` / ${photo.license}` : ""}</span>
+        </a>
+      `).join("");
+    }
+
+    function renderPhotoFallback(target, constituencyName, message) {
+      target.innerHTML = [1, 2].map(() => `
+        <div class="photo">
+          <div class="photo-placeholder">${message}</div>
+          <span>${constituencyName}</span>
+        </div>
+      `).join("");
+    }
+
+    function fundUses(name) {
+      const seed = hashText(name);
+      const pool = [
+        "Road repairs, ward access lanes, and bus stop improvements",
+        "Drinking water pipelines, borewell restoration, and tank desilting",
+        "Government school classroom repairs and digital learning equipment",
+        "Primary health centre upgrades and ambulance support",
+        "Street lights, storm-water drains, and sanitation work",
+        "Market sheds, anganwadi repairs, and community hall maintenance"
+      ];
+      return [pool[seed % pool.length], pool[(seed + 2) % pool.length], pool[(seed + 4) % pool.length]];
+    }
+
+    searchInput.addEventListener("input", renderConstituencyList);
+
+    function indexOfficialRecords(data) {
+      officialData = data;
+      recordsBySeat = new Map();
+      recordsByState = new Map();
+      (data.records || []).forEach((record) => {
+        const exactKey = `${record.state}:${exactSeatName(record.constituency).toLowerCase()}`;
+        const fallbackKey = `${record.state}:${normalizeSeatName(record.constituency).toLowerCase()}`;
+        recordsBySeat.set(exactKey, record);
+        if (!recordsBySeat.has(fallbackKey)) {
+          recordsBySeat.set(fallbackKey, record);
+        }
+        if (!recordsByState.has(record.state)) {
+          recordsByState.set(record.state, []);
+        }
+        recordsByState.get(record.state).push({
+          compactSeat: compactSeatName(record.constituency),
+          record
+        });
+      });
+    }
+
+    Promise.all([
+      fetch("assets/data/south-ac.geojson").then((response) => {
+        if (!response.ok) throw new Error("GeoJSON failed to load");
+        return response.json();
+      }),
+      fetch("assets/data/mla-records.json").then((response) => {
+        if (!response.ok) throw new Error("MLA records failed to load");
+        return response.json();
+      }),
+      fetch("assets/data/funds.json").then((response) => {
+        if (!response.ok) throw new Error("Funds records failed to load");
+        return response.json();
+      })
+    ])
+      .then(([geoData, mlaData, fundData]) => {
+        indexOfficialRecords(mlaData);
+        fundsData = fundData;
+        allFeatures = geoData.features;
+        renderStateButtons(countByState());
+        drawState();
+        renderEmpty();
+      })
+      .catch((error) => {
+        mapHeading.textContent = "Could not load map data";
+        mapSubheading.textContent = error.message;
+        detail.innerHTML = `<div class="empty"><div class="empty-mark">!</div><h2>Map data did not load.</h2><p>Run the site through a local server so the browser can fetch assets/data/south-ac.geojson.</p></div>`;
+      });
+  </script>
+</body>
+</html>
+  
