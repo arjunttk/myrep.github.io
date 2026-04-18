@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Southern States MLA Dashboard</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';">
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" onerror="this.onerror=null;this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';"></script>
   <style>
     :root {
       --ink: #1f1833;
@@ -929,7 +929,7 @@
       <div id="constituencyList" class="constituency-list" aria-label="Constituency list"></div>
 
       <div class="source-note">
-        Boundary source: local Assembly Constituency GeoJSON from `maps-master`. MLA and affidavit summaries are imported from ADR/MyNeta winner and candidate pages, with NeVA/India.gov/ECI links retained for cross-checking.
+        Boundary source: local Assembly Constituency GeoJSON from south-ac.geojson. MLA and affidavit summaries are imported from ADR/MyNeta winner and candidate pages, with NeVA/India.gov/ECI links retained for cross-checking.
       </div>
     </aside>
 
@@ -956,6 +956,14 @@
   </main>
 
   <script>
+    if (!window.L) {
+      const message = "Leaflet map library did not load. Check your internet connection or CDN access.";
+      document.getElementById("mapHeading").textContent = "Could not load map library";
+      document.getElementById("mapSubheading").textContent = message;
+      document.getElementById("detail").innerHTML = `<div class="empty"><div class="empty-mark">!</div><h2>Map library did not load.</h2><p>${message}</p></div>`;
+      throw new Error(message);
+    }
+
     const STATES = {
       TN: { name: "Tamil Nadu", requested: "TN", color: "#e11d48", capital: "Chennai" },
       AP: { name: "Andhra Pradesh", requested: "AP", color: "#00a86b", capital: "Amaravati" },
@@ -2009,19 +2017,20 @@
       });
     }
 
+    function loadJson(path, label) {
+      return fetch(path).then((response) => {
+        if (!response.ok) {
+          const absolutePath = new URL(path, window.location.href).href;
+          throw new Error(`${label} failed to load (${response.status}). Expected file at ${absolutePath}`);
+        }
+        return response.json();
+      });
+    }
+
     Promise.all([
-      fetch("assets/data/south-ac.geojson").then((response) => {
-        if (!response.ok) throw new Error("GeoJSON failed to load");
-        return response.json();
-      }),
-      fetch("assets/data/mla-records.json").then((response) => {
-        if (!response.ok) throw new Error("MLA records failed to load");
-        return response.json();
-      }),
-      fetch("assets/data/funds.json").then((response) => {
-        if (!response.ok) throw new Error("Funds records failed to load");
-        return response.json();
-      })
+      loadJson("south-ac.geojson", "GeoJSON"),
+      loadJson("mla-records.json", "MLA records"),
+      loadJson("funds.json", "Funds records")
     ])
       .then(([geoData, mlaData, fundData]) => {
         indexOfficialRecords(mlaData);
@@ -2034,8 +2043,9 @@
       .catch((error) => {
         mapHeading.textContent = "Could not load map data";
         mapSubheading.textContent = error.message;
-        detail.innerHTML = `<div class="empty"><div class="empty-mark">!</div><h2>Map data did not load.</h2><p>Run the site through a local server so the browser can fetch assets/data/south-ac.geojson.</p></div>`;
+        detail.innerHTML = `<div class="empty"><div class="empty-mark">!</div><h2>Map data did not load.</h2><p>${error.message}</p><p>On GitHub, keep south-ac.geojson, mla-records.json, and funds.json in the same folder as index.html.</p></div>`;
       });
   </script>
 </body>
 </html>
+  
