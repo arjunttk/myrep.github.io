@@ -1,0 +1,125 @@
+{
+  "sources": {
+    "notes": [
+      "Fund data is state-level scheme/allocation data unless constituency-level work records are available from a public source.",
+      "Do not infer utilisation where the official source does not publish constituency-wise spend/work status.",
+      "Photos are loaded at runtime from Wikimedia Commons geocoded media using the constituency map centroid."
+    ],
+    "commonsGeoSearch": "https://commons.wikimedia.org/wiki/Commons:Search_by_location"
+  },
+  "states": {
+    "TN": {
+      "scheme": "Member of Legislative Assembly Constituency Development Scheme (MLACDS)",
+      "allocationPerConstituency": 30000000,
+      "allocationLabel": "3 Cr per constituency per year",
+      "financialYear": "2024-25",
+      "coverage": "official_state_scheme",
+      "utilisationStatus": "statewide_summary_available",
+      "statewide": [
+        "2024-25: administrative sanction for Rs 702 Cr for 234 constituencies.",
+        "2023-24: Rs 702 Cr sanctioned; 9,012 works taken up at estimated cost of Rs 604.86 Cr; 1,384 completed and 7,628 in progress at the time of source publication.",
+        "2022-23: Rs 702 Cr released; 9,536 works taken up at estimated cost of Rs 683.55 Cr; 6,703 completed and 2,833 in progress."
+      ],
+      "workCategories": [
+        "Roads, bridges, and streets",
+        "Drinking water and sanitation",
+        "School and public-building infrastructure",
+        "SC/ST area infrastructure requirement",
+        "Durable local public assets"
+      ],
+      "sources": [
+        "https://tnrd.tn.gov.in/rdweb_newsite/project/reports/Public/public_page_table_content_details_view.php?page_id=Ng%3D%3D&tabular_content_id=NQ%3D%3D",
+        "https://tnrd.tn.gov.in/schemes/st_mlacds.php"
+      ]
+    },
+    "KL": {
+      "scheme": "Legislative Assembly Constituency Asset Development Fund (LAC-ADF)",
+      "allocationPerConstituency": 50000000,
+      "allocationLabel": "5 Cr per constituency per year",
+      "financialYear": "current scheme guideline",
+      "coverage": "official_state_scheme",
+      "utilisationStatus": "constituency_work_list_not_imported",
+      "statewide": [
+        "The scheme allocates Rs 5 Cr during a financial year for capital works in each Assembly constituency.",
+        "The source defines eligible durable assets such as buildings, roads, bridges, water supply, sanitation, irrigation, infrastructure, machinery, and equipment."
+      ],
+      "workCategories": [
+        "Buildings and public infrastructure",
+        "Roads and bridges",
+        "Water supply and sanitation",
+        "Irrigation and durable public assets"
+      ],
+      "sources": [
+        "https://finance.kerala.gov.in/lacadf.jsp",
+        "https://celsgd.kerala.gov.in/celsgd/gen/schemes_guidelines.php"
+      ]
+    },
+    "KA": {
+      "scheme": "Chief Minister's Infrastructure Development Programme / KLLAD context",
+      "allocationPerConstituency": 500000000,
+      "allocationLabel": "50 Cr announced per Assembly segment for 2025-26 infrastructure programme",
+      "financialYear": "2025-26",
+      "coverage": "public_report_plus_scheme_context",
+      "utilisationStatus": "need_based_allocation_reported",
+      "statewide": [
+        "Public reports say Rs 50 Cr was announced for each Assembly constituency under the Chief Minister's Infrastructure Development Programme for 2025-26.",
+        "Reported split: Rs 37.5 Cr for road, bridge, rural road/bridge, and urban-area works; Rs 12.5 Cr for other MLA-selected departmental works.",
+        "State ministers later clarified allocations may be based on developmental need rather than a mechanically uniform release."
+      ],
+      "workCategories": [
+        "Public Works Department roads and bridges",
+        "Rural roads and bridges",
+        "Urban infrastructure",
+        "Other MLA-selected departmental works"
+      ],
+      "sources": [
+        "https://www.theweek.in/wire-updates/national/2025/07/18/mes10-ka-funds-mlas-constituency.html",
+        "https://timesofindia.indiatimes.com/city/bengaluru/mla-fund-allocation-based-on-need-its-not-uniform-50cr-karnataka-home-minister-g-parameshwara/articleshow/122787700.cms"
+      ]
+    },
+    "TG": {
+      "scheme": "Constituency Development Programme (MLAs/MLCs)",
+      "allocationPerConstituency": null,
+      "allocationLabel": "Current per-constituency allocation not published in open source imported here",
+      "financialYear": "current open portal requires further source access",
+      "coverage": "official_program_reference",
+      "utilisationStatus": "public_dashboard_login_protected",
+      "statewide": [
+        "Telangana Planning Department lists Constituency Development Programme (MLAs/MLCs) among the programmes it implements.",
+        "The CLDMS portal exists for constituency local development monitoring, but the useful dashboard is login/captcha protected.",
+        "A published RTI-based report for 2014-15 to 2018-19 said Rs 1,400 Cr was released for MLAs and Rs 974.85 Cr spent in that period; this is historical, not a current constituency-level figure."
+      ],
+      "workCategories": [
+        "Constituency development works",
+        "Local infrastructure and civic amenities",
+        "District Collector / Planning Department monitored works"
+      ],
+      "sources": [
+        "https://www.planning.telangana.gov.in/page/_render?pid=MjM%3D",
+        "https://cldms.planning.telangana.gov.in/",
+        "https://www.newindianexpress.com/states/telangana/2020/Aug/29/33-mla-44-mlc-funds-unused-since-2014-15-in-telangana-2189637.html"
+      ]
+    },
+    "AP": {
+      "scheme": "State finance / constituency development budget tracking",
+      "allocationPerConstituency": null,
+      "allocationLabel": "Current per-constituency MLA fund source not publicly imported",
+      "financialYear": "2025-26 budget/finance sources",
+      "coverage": "official_budget_portal_reference",
+      "utilisationStatus": "constituency_level_open_data_not_found",
+      "statewide": [
+        "The Andhra Pradesh Finance Department publishes budget releases, CBRO guidance, and district/constituency-level budget outreach notices.",
+        "A constituency-wise MLALAD/CDF work-status table was not found in the open sources imported for this dashboard.",
+        "Use this section as source-backed status rather than a fabricated utilisation value."
+      ],
+      "workCategories": [
+        "Budget release and district-level allocation tracking",
+        "Constituency development works where district records publish them",
+        "Public infrastructure works from department or district notices"
+      ],
+      "sources": [
+        "https://apfinance.gov.in/"
+      ]
+    }
+  }
+}
